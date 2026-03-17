@@ -1,0 +1,11 @@
+{
+  "type": "sizecraft:hammerspace",
+  "generator": {
+    "type": "minecraft:noise",
+    "settings": "sizecraft:void_flat",
+    "biome_source": {
+      "type": "minecraft:fixed",
+      "biome": "sizecraft:void_pocket"
+    }
+  }
+}

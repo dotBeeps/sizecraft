@@ -1,0 +1,38 @@
+# Gradle
+.gradle/
+build/
+
+# Eclipse
+.eclipse/
+.settings/
+.classpath
+.project
+bin/
+
+# IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# VS Code
+.vscode/
+
+# NeoForge runtime
+runs/
+logs/
+net/
+
+# Kotlin
+.kotlin/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local maven
+repo/
+
+# Claude Code
+.claude/
