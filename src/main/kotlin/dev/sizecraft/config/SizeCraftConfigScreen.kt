@@ -24,40 +24,40 @@ object SizeCraftConfigScreen {
 
             sizeCategory.addEntry(
                 entryBuilder.startDoubleField(
-                    Component.translatable("sizecraft.config.default_scale"),
-                    SizeCraftConfig.defaultScale
+                    Component.translatable("sizecraft.config.default_steps"),
+                    SizeCraftConfig.defaultSteps
                 )
-                    .setDefaultValue { SizeCraftConfig._defaultScale.default }
-                    .setMin(0.001)
-                    .setMax(100.0)
-                    .setTooltip(Component.translatable("sizecraft.config.default_scale.tooltip"))
-                    .setSaveConsumer { SizeCraftConfig._defaultScale.set(it) }
+                    .setDefaultValue { SizeCraftConfig._defaultSteps.default }
+                    .setMin(-10.0)
+                    .setMax(10.0)
+                    .setTooltip(Component.translatable("sizecraft.config.default_steps.tooltip"))
+                    .setSaveConsumer { SizeCraftConfig._defaultSteps.set(it) }
                     .build()
             )
 
             sizeCategory.addEntry(
                 entryBuilder.startDoubleField(
-                    Component.translatable("sizecraft.config.global_min"),
-                    SizeCraftConfig.globalMinScale
+                    Component.translatable("sizecraft.config.global_min_steps"),
+                    SizeCraftConfig.globalMinSteps
                 )
-                    .setDefaultValue { SizeCraftConfig._globalMinScale.default }
-                    .setMin(0.001)
-                    .setMax(100.0)
-                    .setTooltip(Component.translatable("sizecraft.config.global_min.tooltip"))
-                    .setSaveConsumer { SizeCraftConfig._globalMinScale.set(it) }
+                    .setDefaultValue { SizeCraftConfig._globalMinSteps.default }
+                    .setMin(-10.0)
+                    .setMax(10.0)
+                    .setTooltip(Component.translatable("sizecraft.config.global_min_steps.tooltip"))
+                    .setSaveConsumer { SizeCraftConfig._globalMinSteps.set(it) }
                     .build()
             )
 
             sizeCategory.addEntry(
                 entryBuilder.startDoubleField(
-                    Component.translatable("sizecraft.config.global_max"),
-                    SizeCraftConfig.globalMaxScale
+                    Component.translatable("sizecraft.config.global_max_steps"),
+                    SizeCraftConfig.globalMaxSteps
                 )
-                    .setDefaultValue { SizeCraftConfig._globalMaxScale.default }
-                    .setMin(0.001)
-                    .setMax(100.0)
-                    .setTooltip(Component.translatable("sizecraft.config.global_max.tooltip"))
-                    .setSaveConsumer { SizeCraftConfig._globalMaxScale.set(it) }
+                    .setDefaultValue { SizeCraftConfig._globalMaxSteps.default }
+                    .setMin(-10.0)
+                    .setMax(10.0)
+                    .setTooltip(Component.translatable("sizecraft.config.global_max_steps.tooltip"))
+                    .setSaveConsumer { SizeCraftConfig._globalMaxSteps.set(it) }
                     .build()
             )
         }
