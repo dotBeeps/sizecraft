@@ -7,9 +7,9 @@ object SizeCraftConfig {
     val SERVER_SPEC: ModConfigSpec
     val CLIENT_SPEC: ModConfigSpec
 
-    internal val _defaultScale: ModConfigSpec.DoubleValue
-    internal val _globalMinScale: ModConfigSpec.DoubleValue
-    internal val _globalMaxScale: ModConfigSpec.DoubleValue
+    internal val _defaultSteps: ModConfigSpec.DoubleValue
+    internal val _globalMinSteps: ModConfigSpec.DoubleValue
+    internal val _globalMaxSteps: ModConfigSpec.DoubleValue
     internal val _allowSelfResize: ModConfigSpec.BooleanValue
     internal val _captureEnabled: ModConfigSpec.BooleanValue
     internal val _captureMinSizeRatio: ModConfigSpec.DoubleValue
@@ -21,9 +21,9 @@ object SizeCraftConfig {
     internal val _animationDurationTicks: ModConfigSpec.IntValue
     internal val _enableParticles: ModConfigSpec.BooleanValue
 
-    val defaultScale: Double get() = _defaultScale.get()
-    val globalMinScale: Double get() = _globalMinScale.get()
-    val globalMaxScale: Double get() = _globalMaxScale.get()
+    val defaultSteps: Double get() = _defaultSteps.get()
+    val globalMinSteps: Double get() = _globalMinSteps.get()
+    val globalMaxSteps: Double get() = _globalMaxSteps.get()
     val allowSelfResize: Boolean get() = _allowSelfResize.get()
     val captureEnabled: Boolean get() = _captureEnabled.get()
     val captureMinSizeRatio: Double get() = _captureMinSizeRatio.get()
@@ -41,15 +41,15 @@ object SizeCraftConfig {
         val serverBuilder = ModConfigSpec.Builder()
 
         serverBuilder.push("size")
-        _defaultScale = serverBuilder
-            .comment("Default scale for new players")
-            .defineInRange("defaultScale", 1.0, 0.001, 100.0)
-        _globalMinScale = serverBuilder
-            .comment("Global minimum scale (unless per-player override is set)")
-            .defineInRange("globalMinScale", 0.1, 0.001, 100.0)
-        _globalMaxScale = serverBuilder
-            .comment("Global maximum scale (unless per-player override is set)")
-            .defineInRange("globalMaxScale", 5.0, 0.001, 100.0)
+        _defaultSteps = serverBuilder
+            .comment("Default steps for new players (scale = 6^steps). 0 = normal size.")
+            .defineInRange("defaultSteps", 0.0, -10.0, 10.0)
+        _globalMinSteps = serverBuilder
+            .comment("Global minimum steps (unless per-player override is set). -3 ≈ 1/216 scale.")
+            .defineInRange("globalMinSteps", -3.0, -10.0, 10.0)
+        _globalMaxSteps = serverBuilder
+            .comment("Global maximum steps (unless per-player override is set). 3 = 216x scale.")
+            .defineInRange("globalMaxSteps", 3.0, -10.0, 10.0)
         serverBuilder.pop()
 
         serverBuilder.push("permissions")
