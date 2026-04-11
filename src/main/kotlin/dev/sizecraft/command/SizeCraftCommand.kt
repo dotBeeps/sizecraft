@@ -35,8 +35,8 @@ object SizeCraftCommand {
         dispatcher.register(
             Commands.literal("sizecraft")
                 .then(
-                    Commands.argument("scale", DoubleArgumentType.doubleArg(0.001, 100.0))
-                        .executes { ctx -> setSelfScale(ctx) }
+                    Commands.argument("steps", DoubleArgumentType.doubleArg(-10.0, 10.0))
+                        .executes { ctx -> setSelfSteps(ctx) }
                 )
                 .then(
                     Commands.literal("get")
@@ -53,8 +53,8 @@ object SizeCraftCommand {
                         .then(
                             Commands.argument("player", EntityArgument.player())
                                 .then(
-                                    Commands.argument("scale", DoubleArgumentType.doubleArg(0.001, 100.0))
-                                        .executes { ctx -> setScale(ctx) }
+                                    Commands.argument("steps", DoubleArgumentType.doubleArg(-10.0, 10.0))
+                                        .executes { ctx -> setSteps(ctx) }
                                 )
                         )
                 )
@@ -73,7 +73,7 @@ object SizeCraftCommand {
                         .then(
                             Commands.argument("player", EntityArgument.player())
                                 .then(
-                                    Commands.argument("scale", DoubleArgumentType.doubleArg(0.001, 100.0))
+                                    Commands.argument("steps", DoubleArgumentType.doubleArg(-10.0, 10.0))
                                         .executes { ctx -> setMin(ctx) }
                                 )
                         )
@@ -84,7 +84,7 @@ object SizeCraftCommand {
                         .then(
                             Commands.argument("player", EntityArgument.player())
                                 .then(
-                                    Commands.argument("scale", DoubleArgumentType.doubleArg(0.001, 100.0))
+                                    Commands.argument("steps", DoubleArgumentType.doubleArg(-10.0, 10.0))
                                         .executes { ctx -> setMax(ctx) }
                                 )
                         )
@@ -225,7 +225,11 @@ object SizeCraftCommand {
         val player = ctx.source.playerOrException
         val data = player.getData(SizeDataAttachment.SIZE_DATA)
         ctx.source.sendSuccess({
-            Component.translatable("sizecraft.command.get.self", String.format("%.3f", data.scale))
+            Component.translatable(
+                "sizecraft.command.get.self",
+                String.format("%.2f", data.steps),
+                String.format("%.3f", data.scale)
+            )
         }, false)
         return 1
     }
@@ -234,63 +238,55 @@ object SizeCraftCommand {
         val target = EntityArgument.getPlayer(ctx, "player")
         val data = target.getData(SizeDataAttachment.SIZE_DATA)
         ctx.source.sendSuccess({
-            Component.translatable("sizecraft.command.get.other", target.displayName, String.format("%.3f", data.scale))
+            Component.translatable(
+                "sizecraft.command.get.other",
+                target.displayName,
+                String.format("%.2f", data.steps),
+                String.format("%.3f", data.scale)
+            )
         }, false)
         return 1
     }
 
     // --- Set ---
 
-    private fun setSelfScale(ctx: CommandContext<CommandSourceStack>): Int {
+    private fun setSelfSteps(ctx: CommandContext<CommandSourceStack>): Int {
         val target = ctx.source.playerOrException
-        if (!canResize(ctx.source, target)) return 0
-
-        val data = target.getData(SizeDataAttachment.SIZE_DATA)
-        val requestedScale = DoubleArgumentType.getDouble(ctx, "scale")
-        val clampedScale = SizeEvents.clampScale(requestedScale, data)
-
-        data.scale = clampedScale
-        target.setData(SizeDataAttachment.SIZE_DATA, data)
-        SizeEvents.applyScale(target, clampedScale)
-
-        ctx.source.sendSuccess({
-            Component.translatable("sizecraft.command.set", target.displayName, String.format("%.3f", clampedScale))
-        }, true)
-
-        if (clampedScale != requestedScale) {
-            ctx.source.sendSuccess({
-                Component.translatable(
-                    "sizecraft.command.set.clamped",
-                    String.format("%.3f", requestedScale),
-                    String.format("%.3f", clampedScale)
-                )
-            }, false)
-        }
-        return 1
+        val requestedSteps = DoubleArgumentType.getDouble(ctx, "steps")
+        return doSetSteps(ctx.source, target, requestedSteps)
     }
 
-    private fun setScale(ctx: CommandContext<CommandSourceStack>): Int {
+    private fun setSteps(ctx: CommandContext<CommandSourceStack>): Int {
         val target = EntityArgument.getPlayer(ctx, "player")
-        if (!canResize(ctx.source, target)) return 0
+        val requestedSteps = DoubleArgumentType.getDouble(ctx, "steps")
+        return doSetSteps(ctx.source, target, requestedSteps)
+    }
+
+    private fun doSetSteps(source: CommandSourceStack, target: ServerPlayer, requestedSteps: Double): Int {
+        if (!canResize(source, target)) return 0
 
         val data = target.getData(SizeDataAttachment.SIZE_DATA)
-        val requestedScale = DoubleArgumentType.getDouble(ctx, "scale")
-        val clampedScale = SizeEvents.clampScale(requestedScale, data)
+        val clampedSteps = SizeEvents.clampSteps(requestedSteps, data)
 
-        data.scale = clampedScale
+        data.steps = clampedSteps
         target.setData(SizeDataAttachment.SIZE_DATA, data)
-        SizeEvents.applyScale(target, clampedScale)
+        SizeEvents.applyScale(target, data.scale)
 
-        ctx.source.sendSuccess({
-            Component.translatable("sizecraft.command.set", target.displayName, String.format("%.3f", clampedScale))
+        source.sendSuccess({
+            Component.translatable(
+                "sizecraft.command.set",
+                target.displayName,
+                String.format("%.2f", clampedSteps),
+                String.format("%.3f", data.scale)
+            )
         }, true)
 
-        if (clampedScale != requestedScale) {
-            ctx.source.sendSuccess({
+        if (clampedSteps != requestedSteps) {
+            source.sendSuccess({
                 Component.translatable(
                     "sizecraft.command.set.clamped",
-                    String.format("%.3f", requestedScale),
-                    String.format("%.3f", clampedScale)
+                    String.format("%.2f", requestedSteps),
+                    String.format("%.2f", clampedSteps)
                 )
             }, false)
         }
@@ -312,10 +308,10 @@ object SizeCraftCommand {
 
     private fun doReset(source: CommandSourceStack, target: ServerPlayer): Int {
         val data = target.getData(SizeDataAttachment.SIZE_DATA)
-        val clampedScale = SizeEvents.clampScale(SizeCraftConfig.defaultScale, data)
-        data.scale = clampedScale
+        val clampedSteps = SizeEvents.clampSteps(SizeCraftConfig.defaultSteps, data)
+        data.steps = clampedSteps
         target.setData(SizeDataAttachment.SIZE_DATA, data)
-        SizeEvents.applyScale(target, clampedScale)
+        SizeEvents.applyScale(target, data.scale)
 
         source.sendSuccess({
             Component.translatable("sizecraft.command.reset", target.displayName)
@@ -327,38 +323,38 @@ object SizeCraftCommand {
 
     private fun setMin(ctx: CommandContext<CommandSourceStack>): Int {
         val target = EntityArgument.getPlayer(ctx, "player")
-        val scale = DoubleArgumentType.getDouble(ctx, "scale")
+        val steps = DoubleArgumentType.getDouble(ctx, "steps")
         val data = target.getData(SizeDataAttachment.SIZE_DATA)
-        data.minSteps = kotlin.math.ln(scale) / kotlin.math.ln(6.0)
+        data.minSteps = steps
         target.setData(SizeDataAttachment.SIZE_DATA, data)
 
-        if (data.scale < scale) {
-            data.scale = scale
+        if (data.steps < steps) {
+            data.steps = steps
             target.setData(SizeDataAttachment.SIZE_DATA, data)
-            SizeEvents.applyScale(target, scale)
+            SizeEvents.applyScale(target, data.scale)
         }
 
         ctx.source.sendSuccess({
-            Component.translatable("sizecraft.command.min", target.displayName, String.format("%.3f", scale))
+            Component.translatable("sizecraft.command.min", target.displayName, String.format("%.2f", steps))
         }, true)
         return 1
     }
 
     private fun setMax(ctx: CommandContext<CommandSourceStack>): Int {
         val target = EntityArgument.getPlayer(ctx, "player")
-        val scale = DoubleArgumentType.getDouble(ctx, "scale")
+        val steps = DoubleArgumentType.getDouble(ctx, "steps")
         val data = target.getData(SizeDataAttachment.SIZE_DATA)
-        data.maxSteps = kotlin.math.ln(scale) / kotlin.math.ln(6.0)
+        data.maxSteps = steps
         target.setData(SizeDataAttachment.SIZE_DATA, data)
 
-        if (data.scale > scale) {
-            data.scale = scale
+        if (data.steps > steps) {
+            data.steps = steps
             target.setData(SizeDataAttachment.SIZE_DATA, data)
-            SizeEvents.applyScale(target, scale)
+            SizeEvents.applyScale(target, data.scale)
         }
 
         ctx.source.sendSuccess({
-            Component.translatable("sizecraft.command.max", target.displayName, String.format("%.3f", scale))
+            Component.translatable("sizecraft.command.max", target.displayName, String.format("%.2f", steps))
         }, true)
         return 1
     }

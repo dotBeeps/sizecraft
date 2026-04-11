@@ -46,13 +46,11 @@ object SizeEvents {
     }
 
     fun getEffectiveMinScale(data: SizeData): Double {
-        // TODO(task-6): replaced by getEffectiveMinSteps once config migrates to steps
-        return if (data.minSteps != null) 6.0.pow(data.minSteps!!) else SizeCraftConfig.globalMinScale
+        return 6.0.pow(getEffectiveMinSteps(data))
     }
 
     fun getEffectiveMaxScale(data: SizeData): Double {
-        // TODO(task-6): replaced by getEffectiveMaxSteps once config migrates to steps
-        return if (data.maxSteps != null) 6.0.pow(data.maxSteps!!) else SizeCraftConfig.globalMaxScale
+        return 6.0.pow(getEffectiveMaxSteps(data))
     }
 
     fun clampScale(scale: Double, data: SizeData): Double {
@@ -63,18 +61,13 @@ object SizeEvents {
 
     /**
      * Resolves the effective minimum steps for a player (per-player override or global config).
-     * TODO(task-6): Use SizeCraftConfig.globalMinSteps once config migrates to steps
      */
     fun getEffectiveMinSteps(data: SizeData): Double {
-        return data.minSteps ?: log(SizeCraftConfig.globalMinScale, 6.0)
+        return data.minSteps ?: SizeCraftConfig.globalMinSteps
     }
 
-    /**
-     * Resolves the effective maximum steps for a player (per-player override or global config).
-     * TODO(task-6): Use SizeCraftConfig.globalMaxSteps once config migrates to steps
-     */
     fun getEffectiveMaxSteps(data: SizeData): Double {
-        return data.maxSteps ?: log(SizeCraftConfig.globalMaxScale, 6.0)
+        return data.maxSteps ?: SizeCraftConfig.globalMaxSteps
     }
 
     /**
