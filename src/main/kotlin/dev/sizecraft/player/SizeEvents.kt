@@ -3,6 +3,7 @@ package dev.sizecraft.player
 import dev.sizecraft.SizeCraftMod
 import dev.sizecraft.config.SizeCraftConfig
 import dev.sizecraft.network.SizeSyncPacket
+import kotlin.math.log
 import kotlin.math.pow
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.level.ServerPlayer
@@ -58,6 +59,31 @@ object SizeEvents {
         val min = getEffectiveMinScale(data)
         val max = getEffectiveMaxScale(data)
         return scale.coerceIn(min, max)
+    }
+
+    /**
+     * Resolves the effective minimum steps for a player (per-player override or global config).
+     * TODO(task-6): Use SizeCraftConfig.globalMinSteps once config migrates to steps
+     */
+    fun getEffectiveMinSteps(data: SizeData): Double {
+        return data.minSteps ?: log(SizeCraftConfig.globalMinScale, 6.0)
+    }
+
+    /**
+     * Resolves the effective maximum steps for a player (per-player override or global config).
+     * TODO(task-6): Use SizeCraftConfig.globalMaxSteps once config migrates to steps
+     */
+    fun getEffectiveMaxSteps(data: SizeData): Double {
+        return data.maxSteps ?: log(SizeCraftConfig.globalMaxScale, 6.0)
+    }
+
+    /**
+     * Clamps a step value within the effective bounds for a player.
+     */
+    fun clampSteps(steps: Double, data: SizeData): Double {
+        val min = getEffectiveMinSteps(data)
+        val max = getEffectiveMaxSteps(data)
+        return steps.coerceIn(min, max)
     }
 
     // --- Event Handlers ---
