@@ -69,6 +69,13 @@ dependencies {
     implementation "net.neoforged:neoforge:${neo_version}"
     implementation "thedarkcolour:kotlinforforge-neoforge:${kotlin_for_forge_version}"
     implementation "me.shedaniel.cloth:cloth-config-neoforge:${cloth_config_version}"
+
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
 }
 
 tasks.withType(ProcessResources).configureEach {
