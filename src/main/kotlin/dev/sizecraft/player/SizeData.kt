@@ -7,37 +7,56 @@ import net.neoforged.bus.api.IEventBus
 import net.neoforged.neoforge.attachment.AttachmentType
 import net.neoforged.neoforge.registries.DeferredRegister
 import net.neoforged.neoforge.registries.NeoForgeRegistries
+import java.util.Optional
 import java.util.function.Supplier
+import kotlin.math.ceil
+import kotlin.math.pow
 
 /**
  * Per-player size data stored as a NeoForge attachment.
  * Persisted to NBT automatically via codec, copied on death.
+ *
+ * Size is stored as [steps] on a base-6 logarithmic scale:
+ *   scale = 6^steps
+ * Each integer step multiplies or divides size by 6.
+ * Fractional steps are supported (e.g. 0.5 = √6 ≈ 2.45x).
  */
 data class SizeData(
-    var scale: Double = 1.0,
-    var minScale: Double = -1.0,  // -1.0 means "use global config value"
-    var maxScale: Double = -1.0,  // -1.0 means "use global config value"
+    var steps: Double = 0.0,
+    var minSteps: Double? = null,  // null = use global config value
+    var maxSteps: Double? = null,  // null = use global config value
     var isPredator: Boolean = false,
     var isPrey: Boolean = false,
-    var hammerspaceEscapable: Boolean = true,   // whether this player's hammerspace can be escaped
-    var escapeDelayTicks: Int = -1,             // -1 means "use global config value"
-    var previousGameMode: Int = 0,              // stored when captured (0=survival, 1=creative, 2=adventure, 3=spectator)
-    var stomachSlot: String = "stomach",        // which compartment receives eaten players
-    var returnDimension: String = "",            // dimension key before entering hammerspace ("" = no stored position)
+    var hammerspaceEscapable: Boolean = true,
+    var escapeDelayTicks: Int = -1,             // -1 = use global config value
+    var previousGameMode: Int = 0,
+    var stomachSlot: String = "stomach",
+    var returnDimension: String = "",
     var returnX: Double = 0.0,
     var returnY: Double = 0.0,
     var returnZ: Double = 0.0,
     var returnYaw: Float = 0f,
     var returnPitch: Float = 0f,
 ) {
+    /** Minecraft SCALE attribute value derived from steps: 6^steps. */
+    val scale: Double get() = 6.0.pow(steps)
+
+    /**
+     * Block-interaction grid tier for this player.
+     * Fractional steps snap upward to the next tier (ceil).
+     * Examples: steps=0.0 → 0, steps=0.5 → 1, steps=1.0 → 1, steps=-0.5 → 0, steps=-1.0 → -1
+     */
+    val gridTier: Int get() = ceil(steps).toInt()
 
     companion object {
 
         val CODEC: Codec<SizeData> = RecordCodecBuilder.create { builder ->
             builder.group(
-                Codec.DOUBLE.fieldOf("scale").forGetter(SizeData::scale),
-                Codec.DOUBLE.fieldOf("min_scale").forGetter(SizeData::minScale),
-                Codec.DOUBLE.fieldOf("max_scale").forGetter(SizeData::maxScale),
+                Codec.DOUBLE.fieldOf("steps").forGetter(SizeData::steps),
+                Codec.DOUBLE.optionalFieldOf("min_steps")
+                    .forGetter { Optional.ofNullable(it.minSteps) },
+                Codec.DOUBLE.optionalFieldOf("max_steps")
+                    .forGetter { Optional.ofNullable(it.maxSteps) },
                 Codec.BOOL.optionalFieldOf("is_predator", false).forGetter(SizeData::isPredator),
                 Codec.BOOL.optionalFieldOf("is_prey", false).forGetter(SizeData::isPrey),
                 Codec.BOOL.optionalFieldOf("hammerspace_escapable", true).forGetter(SizeData::hammerspaceEscapable),
@@ -50,8 +69,42 @@ data class SizeData(
                 Codec.DOUBLE.optionalFieldOf("return_z", 0.0).forGetter(SizeData::returnZ),
                 Codec.FLOAT.optionalFieldOf("return_yaw", 0f).forGetter(SizeData::returnYaw),
                 Codec.FLOAT.optionalFieldOf("return_pitch", 0f).forGetter(SizeData::returnPitch),
-            ).apply(builder, ::SizeData)
+            ).apply(builder, ::fromCodec)
         }
+
+        private fun fromCodec(
+            steps: Double,
+            minSteps: Optional<Double>,
+            maxSteps: Optional<Double>,
+            isPredator: Boolean,
+            isPrey: Boolean,
+            hammerspaceEscapable: Boolean,
+            escapeDelayTicks: Int,
+            previousGameMode: Int,
+            stomachSlot: String,
+            returnDimension: String,
+            returnX: Double,
+            returnY: Double,
+            returnZ: Double,
+            returnYaw: Float,
+            returnPitch: Float,
+        ): SizeData = SizeData(
+            steps = steps,
+            minSteps = minSteps.orElse(null),
+            maxSteps = maxSteps.orElse(null),
+            isPredator = isPredator,
+            isPrey = isPrey,
+            hammerspaceEscapable = hammerspaceEscapable,
+            escapeDelayTicks = escapeDelayTicks,
+            previousGameMode = previousGameMode,
+            stomachSlot = stomachSlot,
+            returnDimension = returnDimension,
+            returnX = returnX,
+            returnY = returnY,
+            returnZ = returnZ,
+            returnYaw = returnYaw,
+            returnPitch = returnPitch,
+        )
 
         private val ATTACHMENT_TYPES: DeferredRegister<AttachmentType<*>> =
             DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, SizeCraftMod.MOD_ID)

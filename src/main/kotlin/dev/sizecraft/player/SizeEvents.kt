@@ -3,6 +3,7 @@ package dev.sizecraft.player
 import dev.sizecraft.SizeCraftMod
 import dev.sizecraft.config.SizeCraftConfig
 import dev.sizecraft.network.SizeSyncPacket
+import kotlin.math.pow
 import net.minecraft.resources.ResourceLocation
 import net.minecraft.server.level.ServerPlayer
 import net.minecraft.world.entity.ai.attributes.AttributeModifier
@@ -43,23 +44,16 @@ object SizeEvents {
         PacketDistributor.sendToPlayer(player, SizeSyncPacket(scale, animationTicks))
     }
 
-    /**
-     * Resolves the effective min scale for a player (per-player override or global config).
-     */
     fun getEffectiveMinScale(data: SizeData): Double {
-        return if (data.minScale < 0) SizeCraftConfig.globalMinScale else data.minScale
+        val minSteps = data.minSteps ?: SizeCraftConfig.globalMinScale
+        return 6.0.pow(minSteps)
     }
 
-    /**
-     * Resolves the effective max scale for a player (per-player override or global config).
-     */
     fun getEffectiveMaxScale(data: SizeData): Double {
-        return if (data.maxScale < 0) SizeCraftConfig.globalMaxScale else data.maxScale
+        val maxSteps = data.maxSteps ?: SizeCraftConfig.globalMaxScale
+        return 6.0.pow(maxSteps)
     }
 
-    /**
-     * Clamps a scale value within the effective bounds for a player.
-     */
     fun clampScale(scale: Double, data: SizeData): Double {
         val min = getEffectiveMinScale(data)
         val max = getEffectiveMaxScale(data)
