@@ -7,6 +7,7 @@ import dev.sizecraft.config.SizeCraftConfig
 import dev.sizecraft.dimension.HammerspaceLayout
 import dev.sizecraft.dimension.HammerspacePopulator
 import dev.sizecraft.player.SizeData
+import dev.sizecraft.player.SizeDataAttachment
 import dev.sizecraft.registry.SizeCraftDataComponents
 import dev.sizecraft.registry.SizeCraftDimension
 import net.minecraft.core.UUIDUtil
@@ -150,7 +151,7 @@ class CaptureManager(
         val eaterUuid = eatenBy[playerUuid] ?: return false
 
         val eaterPlayer = server.playerList.getPlayer(eaterUuid)
-        val eaterData = eaterPlayer?.getData(SizeData.SIZE_DATA)
+        val eaterData = eaterPlayer?.getData(SizeDataAttachment.SIZE_DATA)
 
         val escapable = SizeCraftConfig.forceHammerspaceEscapable ||
                 (eaterData?.hammerspaceEscapable ?: SizeCraftConfig.defaultHammerspaceEscapable)
@@ -206,7 +207,7 @@ class CaptureManager(
         val capturedPlayer = server.playerList.getPlayer(capturedUuid)
         val currentTick = server.overworld().gameTime
 
-        val carrierData = carrier.getData(SizeData.SIZE_DATA)
+        val carrierData = carrier.getData(SizeDataAttachment.SIZE_DATA)
         val stomachSlot = carrierData.stomachSlot
 
         val hammerspace = server.getLevel(SizeCraftDimension.HAMMERSPACE_LEVEL_KEY)
@@ -221,14 +222,14 @@ class CaptureManager(
             eat(capturedUuid, carrier.uuid, currentTick, stomachSlot, server)
 
             if (capturedPlayer != null) {
-                val data = capturedPlayer.getData(SizeData.SIZE_DATA)
+                val data = capturedPlayer.getData(SizeDataAttachment.SIZE_DATA)
                 data.returnDimension = capturedPlayer.serverLevel().dimension().location().toString()
                 data.returnX = capturedPlayer.x
                 data.returnY = capturedPlayer.y
                 data.returnZ = capturedPlayer.z
                 data.returnYaw = capturedPlayer.yRot
                 data.returnPitch = capturedPlayer.xRot
-                capturedPlayer.setData(SizeData.SIZE_DATA, data)
+                capturedPlayer.setData(SizeDataAttachment.SIZE_DATA, data)
 
                 val spawnPos = HammerspaceLayout.getRoomSpawnPos(roomIndex)
                 restoreGameMode(capturedPlayer)
@@ -325,7 +326,7 @@ class CaptureManager(
      * Restores a player's game mode from their stored previousGameMode.
      */
     private fun restoreGameMode(player: ServerPlayer) {
-        val data = player.getData(SizeData.SIZE_DATA)
+        val data = player.getData(SizeDataAttachment.SIZE_DATA)
         val gameType = when (data.previousGameMode) {
             1 -> GameType.CREATIVE
             2 -> GameType.ADVENTURE
@@ -351,7 +352,7 @@ class CaptureManager(
 
     private fun getCarrierSizeData(carrierUuid: UUID, server: MinecraftServer): SizeData? {
         val carrier = server.playerList.getPlayer(carrierUuid) ?: return null
-        return carrier.getData(SizeData.SIZE_DATA)
+        return carrier.getData(SizeDataAttachment.SIZE_DATA)
     }
 
     enum class ReleaseReason {

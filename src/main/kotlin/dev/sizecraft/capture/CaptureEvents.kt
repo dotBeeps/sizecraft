@@ -5,6 +5,7 @@ import dev.sizecraft.config.SizeCraftConfig
 import dev.sizecraft.dimension.HammerspaceLayout
 import dev.sizecraft.network.CaptureStatusPacket
 import dev.sizecraft.player.SizeData
+import dev.sizecraft.player.SizeDataAttachment
 import dev.sizecraft.registry.SizeCraftDataComponents
 import dev.sizecraft.registry.SizeCraftDimension
 import dev.sizecraft.registry.SizeCraftItems
@@ -68,8 +69,8 @@ object CaptureEvents {
         if (manager.isHeld(carrier.uuid)) return
 
         // Check predator/prey flags
-        val carrierData = carrier.getData(SizeData.SIZE_DATA)
-        val targetData = target.getData(SizeData.SIZE_DATA)
+        val carrierData = carrier.getData(SizeDataAttachment.SIZE_DATA)
+        val targetData = target.getData(SizeDataAttachment.SIZE_DATA)
 
         if (!carrierData.isPredator) {
             carrier.sendSystemMessage(Component.translatable("sizecraft.capture.not_predator"))
@@ -104,14 +105,14 @@ object CaptureEvents {
      */
     private fun performCapture(carrier: ServerPlayer, target: ServerPlayer, manager: CaptureManager) {
         // Store the target's current game mode before switching to spectator
-        val targetData = target.getData(SizeData.SIZE_DATA)
+        val targetData = target.getData(SizeDataAttachment.SIZE_DATA)
         targetData.previousGameMode = when (target.gameMode.gameModeForPlayer) {
             GameType.CREATIVE -> 1
             GameType.ADVENTURE -> 2
             GameType.SPECTATOR -> 3
             else -> 0
         }
-        target.setData(SizeData.SIZE_DATA, targetData)
+        target.setData(SizeDataAttachment.SIZE_DATA, targetData)
 
         // Register capture in manager
         manager.capture(target.uuid, carrier.uuid)

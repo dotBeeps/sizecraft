@@ -2,13 +2,7 @@ package dev.sizecraft.player
 
 import com.mojang.serialization.Codec
 import com.mojang.serialization.codecs.RecordCodecBuilder
-import dev.sizecraft.SizeCraftMod
-import net.neoforged.bus.api.IEventBus
-import net.neoforged.neoforge.attachment.AttachmentType
-import net.neoforged.neoforge.registries.DeferredRegister
-import net.neoforged.neoforge.registries.NeoForgeRegistries
 import java.util.Optional
-import java.util.function.Supplier
 import kotlin.math.ceil
 import kotlin.math.pow
 
@@ -38,8 +32,14 @@ data class SizeData(
     var returnYaw: Float = 0f,
     var returnPitch: Float = 0f,
 ) {
-    /** Minecraft SCALE attribute value derived from steps: 6^steps. */
-    val scale: Double get() = 6.0.pow(steps)
+    /**
+     * Minecraft SCALE attribute value derived from steps: 6^steps.
+     * The setter converts from scale back to steps for backward compat during migration.
+     * Replaced by direct [steps] assignment in Task 8.
+     */
+    var scale: Double
+        get() = 6.0.pow(steps)
+        set(value) { steps = kotlin.math.ln(value) / kotlin.math.ln(6.0) }
 
     /**
      * Block-interaction grid tier for this player.
@@ -106,18 +106,5 @@ data class SizeData(
             returnPitch = returnPitch,
         )
 
-        private val ATTACHMENT_TYPES: DeferredRegister<AttachmentType<*>> =
-            DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, SizeCraftMod.MOD_ID)
-
-        val SIZE_DATA: Supplier<AttachmentType<SizeData>> = ATTACHMENT_TYPES.register("size_data") { ->
-            AttachmentType.builder(Supplier { SizeData() })
-                .serialize(CODEC)
-                .copyOnDeath()
-                .build()
-        }
-
-        fun register(modBus: IEventBus) {
-            ATTACHMENT_TYPES.register(modBus)
-        }
     }
 }

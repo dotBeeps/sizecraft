@@ -6,6 +6,7 @@ import dev.sizecraft.config.SizeCraftConfig
 import dev.sizecraft.network.CaptureStatusPacket
 import dev.sizecraft.network.SizeSyncPacket
 import dev.sizecraft.player.SizeData
+import dev.sizecraft.player.SizeDataAttachment
 import dev.sizecraft.player.SizeEvents
 import dev.sizecraft.registry.SizeCraftBlocks
 import dev.sizecraft.registry.SizeCraftDataComponents
@@ -43,7 +44,7 @@ class SizeCraftMod(modBus: IEventBus, container: ModContainer) {
         SizeCraftBlocks.register(modBus)
         SizeCraftItems.register(modBus)
         SizeCraftDataComponents.register(modBus)
-        SizeData.register(modBus)
+        SizeDataAttachment.register(modBus)
         SizeSyncPacket.register(modBus)
         CaptureStatusPacket.register(modBus)
         SizeCraftMenuTypes.register(modBus)

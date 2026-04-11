@@ -12,6 +12,7 @@ import dev.sizecraft.dimension.HammerspaceLayout
 import dev.sizecraft.dimension.HammerspacePopulator
 import dev.sizecraft.gui.HammerspaceViewMenu
 import dev.sizecraft.player.SizeData
+import dev.sizecraft.player.SizeDataAttachment
 import dev.sizecraft.player.SizeEvents
 import dev.sizecraft.registry.SizeCraftDimension
 import dev.sizecraft.registry.SizeCraftPermissions
@@ -222,7 +223,7 @@ object SizeCraftCommand {
 
     private fun getSelf(ctx: CommandContext<CommandSourceStack>): Int {
         val player = ctx.source.playerOrException
-        val data = player.getData(SizeData.SIZE_DATA)
+        val data = player.getData(SizeDataAttachment.SIZE_DATA)
         ctx.source.sendSuccess({
             Component.translatable("sizecraft.command.get.self", String.format("%.3f", data.scale))
         }, false)
@@ -231,7 +232,7 @@ object SizeCraftCommand {
 
     private fun getOther(ctx: CommandContext<CommandSourceStack>): Int {
         val target = EntityArgument.getPlayer(ctx, "player")
-        val data = target.getData(SizeData.SIZE_DATA)
+        val data = target.getData(SizeDataAttachment.SIZE_DATA)
         ctx.source.sendSuccess({
             Component.translatable("sizecraft.command.get.other", target.displayName, String.format("%.3f", data.scale))
         }, false)
@@ -244,12 +245,12 @@ object SizeCraftCommand {
         val target = ctx.source.playerOrException
         if (!canResize(ctx.source, target)) return 0
 
-        val data = target.getData(SizeData.SIZE_DATA)
+        val data = target.getData(SizeDataAttachment.SIZE_DATA)
         val requestedScale = DoubleArgumentType.getDouble(ctx, "scale")
         val clampedScale = SizeEvents.clampScale(requestedScale, data)
 
         data.scale = clampedScale
-        target.setData(SizeData.SIZE_DATA, data)
+        target.setData(SizeDataAttachment.SIZE_DATA, data)
         SizeEvents.applyScale(target, clampedScale)
 
         ctx.source.sendSuccess({
@@ -272,12 +273,12 @@ object SizeCraftCommand {
         val target = EntityArgument.getPlayer(ctx, "player")
         if (!canResize(ctx.source, target)) return 0
 
-        val data = target.getData(SizeData.SIZE_DATA)
+        val data = target.getData(SizeDataAttachment.SIZE_DATA)
         val requestedScale = DoubleArgumentType.getDouble(ctx, "scale")
         val clampedScale = SizeEvents.clampScale(requestedScale, data)
 
         data.scale = clampedScale
-        target.setData(SizeData.SIZE_DATA, data)
+        target.setData(SizeDataAttachment.SIZE_DATA, data)
         SizeEvents.applyScale(target, clampedScale)
 
         ctx.source.sendSuccess({
@@ -310,10 +311,10 @@ object SizeCraftCommand {
     }
 
     private fun doReset(source: CommandSourceStack, target: ServerPlayer): Int {
-        val data = target.getData(SizeData.SIZE_DATA)
+        val data = target.getData(SizeDataAttachment.SIZE_DATA)
         val clampedScale = SizeEvents.clampScale(SizeCraftConfig.defaultScale, data)
         data.scale = clampedScale
-        target.setData(SizeData.SIZE_DATA, data)
+        target.setData(SizeDataAttachment.SIZE_DATA, data)
         SizeEvents.applyScale(target, clampedScale)
 
         source.sendSuccess({
@@ -327,13 +328,13 @@ object SizeCraftCommand {
     private fun setMin(ctx: CommandContext<CommandSourceStack>): Int {
         val target = EntityArgument.getPlayer(ctx, "player")
         val scale = DoubleArgumentType.getDouble(ctx, "scale")
-        val data = target.getData(SizeData.SIZE_DATA)
-        data.minScale = scale
-        target.setData(SizeData.SIZE_DATA, data)
+        val data = target.getData(SizeDataAttachment.SIZE_DATA)
+        data.minSteps = kotlin.math.ln(scale) / kotlin.math.ln(6.0)
+        target.setData(SizeDataAttachment.SIZE_DATA, data)
 
         if (data.scale < scale) {
             data.scale = scale
-            target.setData(SizeData.SIZE_DATA, data)
+            target.setData(SizeDataAttachment.SIZE_DATA, data)
             SizeEvents.applyScale(target, scale)
         }
 
@@ -346,13 +347,13 @@ object SizeCraftCommand {
     private fun setMax(ctx: CommandContext<CommandSourceStack>): Int {
         val target = EntityArgument.getPlayer(ctx, "player")
         val scale = DoubleArgumentType.getDouble(ctx, "scale")
-        val data = target.getData(SizeData.SIZE_DATA)
-        data.maxScale = scale
-        target.setData(SizeData.SIZE_DATA, data)
+        val data = target.getData(SizeDataAttachment.SIZE_DATA)
+        data.maxSteps = kotlin.math.ln(scale) / kotlin.math.ln(6.0)
+        target.setData(SizeDataAttachment.SIZE_DATA, data)
 
         if (data.scale > scale) {
             data.scale = scale
-            target.setData(SizeData.SIZE_DATA, data)
+            target.setData(SizeDataAttachment.SIZE_DATA, data)
             SizeEvents.applyScale(target, scale)
         }
 
@@ -398,16 +399,16 @@ object SizeCraftCommand {
             return 0
         }
 
-        val travelerData = traveler.getData(SizeData.SIZE_DATA)
+        val travelerData = traveler.getData(SizeDataAttachment.SIZE_DATA)
         travelerData.returnDimension = traveler.serverLevel().dimension().location().toString()
         travelerData.returnX = traveler.x
         travelerData.returnY = traveler.y
         travelerData.returnZ = traveler.z
         travelerData.returnYaw = traveler.yRot
         travelerData.returnPitch = traveler.xRot
-        traveler.setData(SizeData.SIZE_DATA, travelerData)
+        traveler.setData(SizeDataAttachment.SIZE_DATA, travelerData)
 
-        val ownerData = owner.getData(SizeData.SIZE_DATA)
+        val ownerData = owner.getData(SizeDataAttachment.SIZE_DATA)
         val stomachSlot = ownerData.stomachSlot
 
         val populator = HammerspacePopulator.get(hammerspace)
@@ -451,7 +452,7 @@ object SizeCraftCommand {
         player: ServerPlayer,
     ): Int {
         val server = source.server
-        val data = player.getData(SizeData.SIZE_DATA)
+        val data = player.getData(SizeDataAttachment.SIZE_DATA)
 
         val manager = CaptureManager.get(server.overworld())
         if (manager.isEaten(player.uuid)) {
@@ -483,7 +484,7 @@ object SizeCraftCommand {
             }
 
             data.returnDimension = ""
-            player.setData(SizeData.SIZE_DATA, data)
+            player.setData(SizeDataAttachment.SIZE_DATA, data)
 
             source.sendSuccess({
                 Component.translatable("sizecraft.command.hammerspace.return.success", player.displayName)
@@ -498,7 +499,7 @@ object SizeCraftCommand {
             )
 
             data.returnDimension = ""
-            player.setData(SizeData.SIZE_DATA, data)
+            player.setData(SizeDataAttachment.SIZE_DATA, data)
 
             source.sendSuccess({
                 Component.translatable("sizecraft.command.hammerspace.return.no_position", player.displayName)
@@ -589,9 +590,9 @@ object SizeCraftCommand {
             return 0
         }
 
-        val data = player.getData(SizeData.SIZE_DATA)
+        val data = player.getData(SizeDataAttachment.SIZE_DATA)
         data.stomachSlot = slotId
-        player.setData(SizeData.SIZE_DATA, data)
+        player.setData(SizeDataAttachment.SIZE_DATA, data)
 
         ctx.source.sendSuccess({
             Component.translatable("sizecraft.command.hammerspace.stomach.success", slotId)
@@ -628,7 +629,7 @@ object SizeCraftCommand {
 
     private fun compartmentViewDefault(ctx: CommandContext<CommandSourceStack>): Int {
         val player = ctx.source.playerOrException
-        val data = player.getData(SizeData.SIZE_DATA)
+        val data = player.getData(SizeDataAttachment.SIZE_DATA)
         return doCompartmentView(ctx, player, data.stomachSlot)
     }
 
@@ -663,9 +664,9 @@ object SizeCraftCommand {
 
     private fun togglePredator(ctx: CommandContext<CommandSourceStack>): Int {
         val player = ctx.source.playerOrException
-        val data = player.getData(SizeData.SIZE_DATA)
+        val data = player.getData(SizeDataAttachment.SIZE_DATA)
         data.isPredator = !data.isPredator
-        player.setData(SizeData.SIZE_DATA, data)
+        player.setData(SizeDataAttachment.SIZE_DATA, data)
 
         val state = if (data.isPredator) "sizecraft.command.on" else "sizecraft.command.off"
         ctx.source.sendSuccess({
@@ -677,9 +678,9 @@ object SizeCraftCommand {
     private fun setPredator(ctx: CommandContext<CommandSourceStack>): Int {
         val player = ctx.source.playerOrException
         val enabled = BoolArgumentType.getBool(ctx, "enabled")
-        val data = player.getData(SizeData.SIZE_DATA)
+        val data = player.getData(SizeDataAttachment.SIZE_DATA)
         data.isPredator = enabled
-        player.setData(SizeData.SIZE_DATA, data)
+        player.setData(SizeDataAttachment.SIZE_DATA, data)
 
         val state = if (enabled) "sizecraft.command.on" else "sizecraft.command.off"
         ctx.source.sendSuccess({
@@ -690,9 +691,9 @@ object SizeCraftCommand {
 
     private fun togglePrey(ctx: CommandContext<CommandSourceStack>): Int {
         val player = ctx.source.playerOrException
-        val data = player.getData(SizeData.SIZE_DATA)
+        val data = player.getData(SizeDataAttachment.SIZE_DATA)
         data.isPrey = !data.isPrey
-        player.setData(SizeData.SIZE_DATA, data)
+        player.setData(SizeDataAttachment.SIZE_DATA, data)
 
         val state = if (data.isPrey) "sizecraft.command.on" else "sizecraft.command.off"
         ctx.source.sendSuccess({
@@ -704,9 +705,9 @@ object SizeCraftCommand {
     private fun setPrey(ctx: CommandContext<CommandSourceStack>): Int {
         val player = ctx.source.playerOrException
         val enabled = BoolArgumentType.getBool(ctx, "enabled")
-        val data = player.getData(SizeData.SIZE_DATA)
+        val data = player.getData(SizeDataAttachment.SIZE_DATA)
         data.isPrey = enabled
-        player.setData(SizeData.SIZE_DATA, data)
+        player.setData(SizeDataAttachment.SIZE_DATA, data)
 
         val state = if (enabled) "sizecraft.command.on" else "sizecraft.command.off"
         ctx.source.sendSuccess({
@@ -850,9 +851,9 @@ object SizeCraftCommand {
     private fun hammerspaceEscape(ctx: CommandContext<CommandSourceStack>): Int {
         val player = ctx.source.playerOrException
         val enabled = BoolArgumentType.getBool(ctx, "enabled")
-        val data = player.getData(SizeData.SIZE_DATA)
+        val data = player.getData(SizeDataAttachment.SIZE_DATA)
         data.hammerspaceEscapable = enabled
-        player.setData(SizeData.SIZE_DATA, data)
+        player.setData(SizeDataAttachment.SIZE_DATA, data)
 
         val state = if (enabled) "sizecraft.command.on" else "sizecraft.command.off"
         ctx.source.sendSuccess({
@@ -866,9 +867,9 @@ object SizeCraftCommand {
         val ticks = IntegerArgumentType.getInteger(ctx, "ticks")
 
         val clamped = ticks.coerceAtMost(SizeCraftConfig.maxEscapeDelayTicks)
-        val data = player.getData(SizeData.SIZE_DATA)
+        val data = player.getData(SizeDataAttachment.SIZE_DATA)
         data.escapeDelayTicks = clamped
-        player.setData(SizeData.SIZE_DATA, data)
+        player.setData(SizeDataAttachment.SIZE_DATA, data)
 
         ctx.source.sendSuccess({
             Component.translatable("sizecraft.command.hammerspace.delay", clamped, clamped / 20)

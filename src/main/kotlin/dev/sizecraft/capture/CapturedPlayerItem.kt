@@ -2,6 +2,7 @@ package dev.sizecraft.capture
 
 import dev.sizecraft.SizeCraftMod
 import dev.sizecraft.config.SizeCraftConfig
+import dev.sizecraft.player.SizeDataAttachment
 import dev.sizecraft.dimension.HammerspaceLayout
 import dev.sizecraft.dimension.HammerspacePopulator
 import dev.sizecraft.registry.SizeCraftDataComponents
@@ -101,7 +102,7 @@ class CapturedPlayerItem(properties: Properties) : Item(
          */
         fun createStack(target: ServerPlayer): ItemStack {
             val stack = ItemStack(dev.sizecraft.registry.SizeCraftItems.CAPTURED_PLAYER.get())
-            val playerData = target.getData(dev.sizecraft.player.SizeData.SIZE_DATA)
+            val playerData = target.getData(SizeDataAttachment.SIZE_DATA)
             stack.set(
                 SizeCraftDataComponents.CAPTURED_PLAYER.get(),
                 CapturedPlayerData(

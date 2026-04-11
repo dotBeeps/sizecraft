@@ -64,7 +64,7 @@ object SizeEvents {
 
     fun onPlayerLogin(event: PlayerEvent.PlayerLoggedInEvent) {
         val player = event.entity as? ServerPlayer ?: return
-        val data = player.getData(SizeData.SIZE_DATA)
+        val data = player.getData(SizeDataAttachment.SIZE_DATA)
         applyScale(player, data.scale, animationTicks = 0) // Instant on login, no animation
     }
 
@@ -72,7 +72,7 @@ object SizeEvents {
         // copyOnDeath handles data transfer, but we need to reapply the attribute modifier
         if (!event.isWasDeath) return
         val newPlayer = event.entity as? ServerPlayer ?: return
-        val data = newPlayer.getData(SizeData.SIZE_DATA)
+        val data = newPlayer.getData(SizeDataAttachment.SIZE_DATA)
         // Delay by 1 tick to ensure the player entity is fully initialized
         newPlayer.server?.execute {
             applyScale(newPlayer, data.scale, animationTicks = 0)
@@ -81,7 +81,7 @@ object SizeEvents {
 
     fun onPlayerChangedDimension(event: PlayerEvent.PlayerChangedDimensionEvent) {
         val player = event.entity as? ServerPlayer ?: return
-        val data = player.getData(SizeData.SIZE_DATA)
+        val data = player.getData(SizeDataAttachment.SIZE_DATA)
         applyScale(player, data.scale, animationTicks = 0)
     }
 }
