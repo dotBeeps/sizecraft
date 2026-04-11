@@ -39,7 +39,10 @@ data class SizeData(
      */
     var scale: Double
         get() = 6.0.pow(steps)
-        set(value) { steps = kotlin.math.ln(value) / kotlin.math.ln(6.0) }
+        set(value) {
+            require(value > 0.0) { "scale must be positive, got $value" }
+            steps = kotlin.math.ln(value) / kotlin.math.ln(6.0)
+        }
 
     /**
      * Block-interaction grid tier for this player.

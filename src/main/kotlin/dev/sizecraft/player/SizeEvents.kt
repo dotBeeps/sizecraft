@@ -45,13 +45,13 @@ object SizeEvents {
     }
 
     fun getEffectiveMinScale(data: SizeData): Double {
-        val minSteps = data.minSteps ?: SizeCraftConfig.globalMinScale
-        return 6.0.pow(minSteps)
+        // TODO(task-6): replaced by getEffectiveMinSteps once config migrates to steps
+        return if (data.minSteps != null) 6.0.pow(data.minSteps!!) else SizeCraftConfig.globalMinScale
     }
 
     fun getEffectiveMaxScale(data: SizeData): Double {
-        val maxSteps = data.maxSteps ?: SizeCraftConfig.globalMaxScale
-        return 6.0.pow(maxSteps)
+        // TODO(task-6): replaced by getEffectiveMaxSteps once config migrates to steps
+        return if (data.maxSteps != null) 6.0.pow(data.maxSteps!!) else SizeCraftConfig.globalMaxScale
     }
 
     fun clampScale(scale: Double, data: SizeData): Double {
