@@ -1,0 +1,11 @@
+# lefthook local quality gates for SizeCraft (agent-effectiveness P2)
+#
+# Gradle is slow, so pre-commit is intentionally light. This project applies no
+# ktlint/spotless Gradle plugin, so there is no fast Kotlin lint to run at commit
+# time — linting (via `check`) is deferred to pre-push. CI runs `check` + `build`.
+
+pre-push:
+  commands:
+    check:
+      # `check` aggregates the JUnit test task, so this runs verification + tests.
+      run: ./gradlew check -Dorg.gradle.configuration-cache=false

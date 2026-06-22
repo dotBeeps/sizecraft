@@ -19,7 +19,10 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      - run: ./gradlew build -Dorg.gradle.configuration-cache=false
+      # `check` aggregates `test` (verified: the test task is in check's task graph),
+      # so this runs both the verification suite and unit tests. `build` is kept so the
+      # jar artifact below is still produced.
+      - run: ./gradlew check build -Dorg.gradle.configuration-cache=false
 
       - uses: actions/upload-artifact@v4
         if: github.event_name == 'pull_request'
