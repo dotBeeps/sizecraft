@@ -9,3 +9,8 @@ pre-push:
     check:
       # `check` aggregates the JUnit test task, so this runs verification + tests.
       run: ./gradlew check -Dorg.gradle.configuration-cache=false
+
+commit-msg:
+  commands:
+    conventional:
+      run: bash .lefthook/commit-msg-conventional.sh {1}
