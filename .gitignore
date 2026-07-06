@@ -36,3 +36,6 @@ repo/
 
 # Claude Code
 .claude/
+
+# session scratch (handoff lives at .agents/handoff.md)
+.agents/
