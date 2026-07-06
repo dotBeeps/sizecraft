@@ -1,0 +1,10 @@
+# CI on git.dotbeeps.dog: pi-review MR gates + the just gate (test-gradle).
+# Replaces the GitHub Actions ci.yml — GitLab CI is the quality gate; the
+# GitHub twin keeps only release.yml (jar release on tags).
+# just ci = ./gradlew check build (config cache off), temurin 21.
+
+include:
+  - project: dot/ci-components
+    file: templates/pi-review.yml
+  - project: dot/ci-components
+    file: templates/test-gradle.yml
